@@ -10,7 +10,7 @@
             /*transform: rotateZ(150deg) rotateY(36deg) rotateX(45deg) translateX(-5rem) translateY(-10rem);*/
             transform: rotateX(60deg) rotateZ(-45deg);
             transform-style: preserve-3d;
-            background-color: rgb(192, 255, 255);
+            background-color: rgb(200, 200, 200);
             margin: auto;
             display: flex;
             flex-flow: row wrap;
@@ -52,6 +52,22 @@
         .tile--ICE {
             background-color: rgba(150, 150, 150, 1);
         }
+
+        .tile--ASH {
+            background-color: rgba(79, 63, 63, 0.97);
+        }
+
+        .tile--LAVA {
+            background-color: rgba(182, 7, 7, 0.95);
+        }
+
+        .tile--STONEFLOOR {
+            background-color: rgba(101, 98, 98, 0.95);
+        }
+
+        .tile--TREE {
+            background-color: rgba(0, 255, 33, 0.99);
+        }
     </style>
 </head>
 <body>
@@ -60,203 +76,302 @@
     </div>
     <script type="text/javascript">
         var maze = (function ($document, $window, $) {
-            var _private = {};
             var _public = {};
-            var mapaController = {};
-            var tileController = {};
-            var exitsController = {};
-            exitsController.props = {
-                maxExits: 4,
-                currentExits: [],
-                exitPrototype: (function (to, x, y, needKey) {
-                    return {
-                        to: to,
-                        x: x,
-                        y: y,
-                        needkey: needKey
-                    };
-                })
-            };
-            exitsController.createExit = (function () {
-                existsController.currentExits.push();
-            });
-            tileController.props = {
-                height: 1,
-                width: 1,
-                tiles: [[]],
-                tilesTypes: [
-                    { i: 0, description: 'GRASS', affinity: [0, 1, 2, 3, 4, 5] },
-                    { i: 1, description: 'PATH', affinity: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
-                    { i: 2, description: 'WATER', affinity: [0, 1, 2, 3, 4, 5, 6] },
-                    { i: 3, description: 'STONE', affinity: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
-                    { i: 4, description: 'SAND', affinity: [0, 1, 2, 3, 4] },
-                    { i: 5, description: 'MUD', affinity: [0, 1, 2, 3, 5] },
-                    { i: 6, description: 'ICE', affinity: [1, 2, 3, 6] },
-                    { i: 7, description: 'ASH', affinity: [1, 2, 3, 4, 7] },
-                    { i: 8, description: 'LAVA', affinity: [1, 3, 4, 7, 8] }
+            var _private = {};
+
+            var exitsController = (function () {
+                var _public = {};
+                _public.props = {
+                    maxExits: 4,
+                    currentExits: [],
+                    exitPrototype: (function (to, x, y, needKey) {
+                        return {
+                            to: to,
+                            x: x,
+                            y: y,
+                            needkey: needKey
+                        };
+                    })
+                };
+                _public.createExit = (function () {
+                    existsController.currentExits.push();
+                });
+
+                return _public;
+            })();
+
+            var terrainController = (function () {
+                var _public = {}, _private = {};
+
+                _public.props = {};
+                _public.props.tileTypes = [
+                        { id: 0, description: 'GRASS', affinity: [0, 1, 2, 3, 4, 5, 10] },
+                        { id: 1, description: 'PATH', affinity: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+                        { id: 2, description: 'WATER', affinity: [0, 1, 2, 3, 4, 5, 6, 9, 10] },
+                        { id: 3, description: 'STONE', affinity: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+                        { id: 4, description: 'SAND', affinity: [0, 1, 2, 3, 4] },
+                        { id: 5, description: 'MUD', affinity: [0, 1, 2, 3, 5, 10] },
+                        { id: 6, description: 'ICE', affinity: [1, 2, 3, 6] },
+                        { id: 7, description: 'ASH', affinity: [1, 2, 3, 4, 7, 9] },
+                        { id: 8, description: 'LAVA', affinity: [1, 3, 4, 7, 8] },
+                        { id: 9, description: 'STONEFLOOR', affinity: [1, 2, 3, 7, 9] },
+                        { id: 10, description: 'TREE', affinity: [0, 1, 2, 3, 5, 10] }
                 ],
-                siblingsPrototype: (function () {
-                    return {
-                        N: null,
-                        S: null,
-                        W: null,
-                        E: null,
-                        NW: null,
-                        NE: null,
-                        SW: null,
-                        SE: null
+                _public.props.terrainTypes = [
+                        {
+                            id: 0, description: 'PLAIN', configuration: [
+                              { tileType: _public.props.tileTypes[0], min: 0.7, max: 0.9 },
+                              { tileType: _public.props.tileTypes[3], min: 0.05, max: 0.07 },
+                              { tileType: _public.props.tileTypes[4], min: 0, max: 0.03 },
+                              { tileType: _public.props.tileTypes[10], min: 0.05, max: 0.07 }
+                            ]
+                        },
+                        { id: 1, description: 'FORREST', configuration: [] },
+                        { id: 2, description: 'MONTAIN', configuration: [] },
+                        { id: 3, description: 'THUNDRA', configuration: [] },
+                        { id: 4, description: 'SWAMP', configuration: [] },
+                        { id: 5, description: 'DESERT', configuration: [] },
+                        { id: 6, description: 'GLACIAL', configuration: [] },
+                        { id: 6, description: 'ROAD', configuration: [] }
+                ];
+                _private.getCommomTile = (function (terrainType) {
+                    var findTile = function (configurations, currConfig) {
+                        var common = currConfig;
+                        for (var conf in configurations) {
+                            if (conf.max > common.max)
+                                common = conf;
+                        }
+                        return common;
                     }
-                }),
-                tilePrototype: (function (tileType, x, y, side) {
-                    return {
-                        x: x,
-                        y: y,
-                        side: side,
-                        tileType: tileType
-                    };
-                })
-            };
-            tileController.getTileType = (function (tileTypeDefault, sN, sNW, sW) {
-                try {
-                    var tileType;
-                    var max = tileController.props.tilesTypes.length - 1;
-                    if (sW == null && sNW == null && sN == null) 
-                        tileType = tileController.props.tilesTypes[Math.round(Math.random() * max)];
-
-
-
-                    if (tileType == null || tileType == undefined)
-                        tileType = tileTypeDefault;
-
-                    return tileType;
-
-                } catch (e) {
-                    return tileTypeDefault;
-                }
-            });
-            tileController.getsiblings = (function (currX, currY) {
-                var siblings = {};
-                siblings.N = tileController.getsibling(currX, currY, 'N');
-                siblings.S = tileController.getsibling(currX, currY, 'S');
-                siblings.E = tileController.getsibling(currX, currY, 'E');
-                siblings.W = tileController.getsibling(currX, currY, 'W');
-                siblings.NE = tileController.getsibling(currX, currY, 'NE');
-                siblings.NW = tileController.getsibling(currX, currY, 'NW');
-                siblings.SE = tileController.getsibling(currX, currY, 'SE');
-                siblings.SW = tileController.getsibling(currX, currY, 'SW');
-                return siblings;
-            });
-            _public.siblings = (function (currX, currY) {
-                return tileController.getsiblings(currX, currY);
-            });
-            tileController.getsibling = (function (currX, currY, direction) {
-                if (currX < 0 || currY < 0 || currX > mapaController.props.width - 1 || currY > mapaController.props.height - 1)
-                    return null;
-                try {
-                    if (direction == 'N' && currY - 1 >= 0)
-                        return tileController.props.tiles[currX][currY - 1];
-
-                    if (direction == 'S' && currY + 1 <= mapaController.props.height - 1)
-                        return tileController.props.tiles[currX][currY + 1];
-
-                    if (direction == 'W' && currX - 1 >= 0)
-                        return tileController.props.tiles[currX - 1][currY];
-
-                    if (direction == 'E' && currX + 1 <= mapaController.props.width - 1)
-                        return tileController.props.tiles[currX + 1][currY];
-
-                    if (direction == 'NE' && currX + 1 <= mapaController.props.width - 1 && currY - 1 >= 0)
-                        return tileController.props.tiles[currX + 1][currY - 1];
-
-                    if (direction == 'NW' && currX - 1 >= 0 && currY - 1 >= 0)
-                        return tileController.props.tiles[currX - 1][currY - 1];
-
-                    if (direction == 'SE' && currX + 1 <= mapaController.props.width - 1 && currY + 1 <= mapaController.props.height - 1)
-                        return tileController.props.tiles[currX][currY - 1];
-
-                    if (direction == 'SW' && currX - 1 >= 0 && currY + 1 <= mapaController.props.height - 1)
-                        return tileController.props.tiles[currX][currY - 1];
-
-                } catch (e) {
-                    return null;
-                }
-                return null;
-            });
-            tileController.createTile = (function (x, y, side) {
-                var siblings = tileController.props.siblingsPrototype();
-                siblings.N = tileController.getsibling(x, y, 'N');
-                siblings.NW = tileController.getsibling(x, y, 'NW');
-                siblings.W = tileController.getsibling(x, y, 'W');
-
-                var tileType = tileController.getTileType(siblings.N, siblings.NW, siblings.W);
-                var tile = tileController.props.tilePrototype(tileType, x, y, side);
-                if (tileController.props.tiles[x] === undefined)
-                    tileController.props.tiles[x] = [];
-                console.log(tile);
-                tileController.props.tiles[x][y] = tile;
-                return tile;
-            });
-            tileController.renderTiles = (function (mapa) {
-                for (var row of tileController.props.tiles) {
-                    for(var col of row) {
-                        var currTile = $('<div/>').addClass('tile tile--' + col.tileType.description)
-                        .attr({
-                            x: col.x,
-                            y: col.y
-                        })
-                        .css({
-                            height: col.side - 2 + 'px',
-                            width: col.side - 2 + 'px'
-                        });
-                        mapa.append(currTile);
-                    }
-                }
-            });
-            mapaController.props = {
-                tileSide: 40,
-                height: 16,
-                width: 16,
-                mapaObj: null
-            };
-            mapaController.renderMap = (function () {
-                mapaController.props.mapaObj.css({
-                    height: (mapaController.props.height * mapaController.props.tileSide + 2) + 'px',
-                    width: (mapaController.props.width * mapaController.props.tileSide + 2) + 'px',
+                    return terrainType.configuration.find(c=>findTile(terrainType.configuration, c));
                 });
-                for (var i = 0; i < mapaController.props.width; i++) {
-                    for (var j = 0; j < mapaController.props.height; j++) {
-                        tileController.createTile(i, j, mapaController.props.tileSide);
+                _public.getTerrainCommomTileType = (function (terrainId) {
+                    return _public.props.terrainTypes.find(t=>t.id == terrainId)
+                });
+                _public.getRamdomTerrainType = (function () {
+                    return _public.props.terrainTypes[Math.round(Math.random() * _public.props.terrainTypes.length - 1)];
+                });
+                return _public;
+            })();
+
+            var tileController = (function () {
+                var _public = {};
+                _public.props = {
+                    height: 1,
+                    width: 1,
+                    tiles: [[]],
+                    siblingsPrototype: (function () {
+                        return {
+                            N: null,
+                            S: null,
+                            W: null,
+                            E: null,
+                            NW: null,
+                            NE: null,
+                            SW: null,
+                            SE: null
+                        }
+                    }),
+                    tilePrototype: (function (tileType, x, y, side) {
+                        return {
+                            x: x,
+                            y: y,
+                            side: side,
+                            tileType: tileType
+                        };
+                    })
+                };
+                _public.getTileType = (function (defaultTileType, sN, sNW, sW) {
+                    try {
+                        var tileType;
+                        var max = tileController.props.tilesTypes.length - 1;
+                        if (sW == null && sNW == null && sN == null)
+                            tileType = tileController.props.tilesTypes[Math.round(Math.random() * max)];
+                        else if (sW != null && sNW == null && sN == null)
+                            tileType = tileController.props.tilesTypes[Math.round(Math.random() * (max - sW.tileType.i) + sW.tileType.i)];
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                            //else if (sW == null && sNW == null && sN == null)
+                        else tileType = defaultTileType;
+
+
+                        if (tileType == null || tileType == undefined)
+                            tileType = defaultTileType;
+
+                        return tileType;
+
+                    } catch (e) {
+                        return defaultTileType;
                     }
-                }
-                tileController.renderTiles(mapaController.props.mapaObj);
-            });
-            mapaController.init = (function (opt) {
-                if (!!opt.height) {
-                    mapaController.props.height = opt.height;
-                }
-                if (!!opt.width) {
-                    mapaController.props.width = opt.width;
-                }
-                if (!!opt.tileSide) {
-                    mapaController.props.tileSide = opt.tileSide;
-                }
-                if (!!opt.mapaObj) {
-                    mapaController.props.mapaObj = opt.mapaObj;
-                }
+                });
+                _public.siblings = (function (currX, currY) {
+                    var siblings = {};
+                    siblings.N = tileController.getsibling(currX, currY, 'N');
+                    siblings.S = tileController.getsibling(currX, currY, 'S');
+                    siblings.E = tileController.getsibling(currX, currY, 'E');
+                    siblings.W = tileController.getsibling(currX, currY, 'W');
+                    siblings.NE = tileController.getsibling(currX, currY, 'NE');
+                    siblings.NW = tileController.getsibling(currX, currY, 'NW');
+                    siblings.SE = tileController.getsibling(currX, currY, 'SE');
+                    siblings.SW = tileController.getsibling(currX, currY, 'SW');
+                    return siblings;
+                });
+                _public.getsibling = (function (currX, currY, direction) {
+                    if (currX < 0 || currY < 0 || currX > mapaController.currMapa.width - 1 || currY > mapaController.currMapa.height - 1)
+                        return null;
+                    try {
+                        if (direction == 'N' && currY - 1 >= 0)
+                            return tileController.props.tiles[currX][currY - 1];
 
-                mapaController.renderMap();
+                        if (direction == 'S' && currY + 1 <= mapaController.props.height - 1)
+                            return tileController.props.tiles[currX][currY + 1];
 
-            });
+                        if (direction == 'W' && currX - 1 >= 0)
+                            return tileController.props.tiles[currX - 1][currY];
+
+                        if (direction == 'E' && currX + 1 <= mapaController.props.width - 1)
+                            return tileController.props.tiles[currX + 1][currY];
+
+                        if (direction == 'NE' && currX + 1 <= mapaController.props.width - 1 && currY - 1 >= 0)
+                            return tileController.props.tiles[currX + 1][currY - 1];
+
+                        if (direction == 'NW' && currX - 1 >= 0 && currY - 1 >= 0)
+                            return tileController.props.tiles[currX - 1][currY - 1];
+
+                        if (direction == 'SE' && currX + 1 <= mapaController.props.width - 1 && currY + 1 <= mapaController.props.height - 1)
+                            return tileController.props.tiles[currX][currY - 1];
+
+                        if (direction == 'SW' && currX - 1 >= 0 && currY + 1 <= mapaController.props.height - 1)
+                            return tileController.props.tiles[currX][currY - 1];
+
+                    } catch (e) {
+                        return null;
+                    }
+                    return null;
+                });
+                _public.createTile = (function (x, y, side, terrainType) {
+                    var siblings = tileController.props.siblingsPrototype();
+                    siblings.N = tileController.getsibling(x, y, 'N');
+                    siblings.NW = tileController.getsibling(x, y, 'NW');
+                    siblings.W = tileController.getsibling(x, y, 'W');
+                    //var defaultTileType = (x == 0 && y == 0) ? tileController.getTileType(null, null, null, null) : tileController.props.tiles[0][0].tileType;
+                    var defaultTileType = terrainType.configuration;
+                    var tileType = tileController.getTileType(defaultTileType, siblings.N, siblings.NW, siblings.W);
+                    var tile = tileController.props.tilePrototype(tileType, x, y, side);
+                    if (tileController.props.tiles[x] === undefined)
+                        tileController.props.tiles[x] = [];
+                    console.log(tile);
+                    tileController.props.tiles[x][y] = tile;
+                    return tile;
+                });
+                _public.renderTiles = (function (mapa) {
+                    for (var row of tileController.props.tiles) {
+                        for(var col of row) {
+                            var currTile = $('<div/>').addClass('tile tile--' + col.tileType.description)
+                            .attr({
+                                x: col.x,
+                                y: col.y
+                            })
+                            .css({
+                                height: col.side - 2 + 'px',
+                                width: col.side - 2 + 'px'
+                            });
+                            mapa.append(currTile);
+                        }
+                    }
+                });
+
+                return _public;
+            })();
+
+            var mapaController = (function () {
+                var _public = {};
+                var _private = {};
+
+                _private.props = {
+                    tileSide: 40,
+                    height: 16,
+                    width: 16,
+                    terrainType: null,
+                    mapaObj: null
+                };
+                _public.renderMap = (function () {
+                    _private.props.mapaObj.css({
+                        height: (_private.props.height * _private.props.tileSide + 2) + 'px',
+                        width: (_private.props.width * _private.props.tileSide + 2) + 'px',
+                    });
+                    for (var i = 0; i < _private.props.width; i++) {
+                        for (var j = 0; j < _private.props.height; j++) {
+                            tileController.createTile(i, j, _private.props.tileSide, _private.props.terrainType);
+                        }
+                    }
+                    tileController.renderTiles(_private.props.mapaObj);
+                });
+
+                _public.init = (function (opt) {
+                    if (!!opt.height) {
+                        _private.props.height = opt.height;
+                    }
+                    if (!!opt.width) {
+                        _private.props.width = opt.width;
+                    }
+                    if (!!opt.tileSide) {
+                        _private.props.tileSide = opt.tileSide;
+                    }
+                    if (!!opt.mapaObj) {
+                        _private.props.mapaObj = opt.mapaObj;
+                    }
+                    if (!!opt.terrainType) {
+                        _private.props.terrainType = opt.terrainType;
+                    }
+                    mapaController.renderMap();
+
+                });
+                _public.currMapa = {
+                    tileSide: (function () { return _private.props.tileSide; }),
+                    height: (function () { return _private.props.height; }),
+                    width: (function () { return _private.props.width; }),
+                    terrainType: (function () { return _private.props.terrainType; }),
+                    mapaObj: (function () { return _private.props.mapaObj; })
+                };
+
+                return _public;
+            })();
+
+            var gameController = (function () {
+                var _public = {};
+                _public.evt = (function () {
+                    return {
+
+                    }
+                });
+                _public.init = (function () {
+                    mapaController.init({
+                        terrainType: terrainController.getRamdomTerrainType(),
+                        mapaObj: $('#mapa')
+                    });
+                });
+                return _public;
+            })();
+
             _private.init = (function () {
-                mapaController.init({
-                    mapaObj: $('#mapa')
-                });
+                gameController.init();
             });
-            $window.addEventListener('DOMContentLoaded', _private.init);
+
+            _public.init = _private.init;
 
             return _public;
 
         })(document, window, $);
+        window.addEventListener('DOMContentLoaded', maze.init);
     </script>
 </body>
 </html>
